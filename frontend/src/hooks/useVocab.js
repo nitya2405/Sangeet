@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { API_BASE } from '../api'
 
 export function useVocab() {
   const [ragas, setRagas] = useState([])
@@ -8,8 +9,8 @@ export function useVocab() {
 
   useEffect(() => {
     Promise.all([
-      axios.get('/api/ragas'),
-      axios.get('/api/talas'),
+      axios.get(`${API_BASE}/api/ragas`),
+      axios.get(`${API_BASE}/api/talas`),
     ]).then(([r, t]) => {
       setRagas(r.data)
       setTalas(t.data)

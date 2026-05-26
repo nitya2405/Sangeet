@@ -1,0 +1,12 @@
+input_manifest: data/processed/segments_manifest_youtube.jsonl
+
+tokenizer:
+  name: encodec
+  model: 24khz
+  bandwidth: 6.0
+  device: cuda
+  use_normalize: false
+
+output:
+  tokens_dir: data/tokens/hindustani_encodec_24khz_bw6_youtube
+  manifest_path: data/tokens/hindustani_encodec_24khz_bw6_youtube/manifest.jsonl

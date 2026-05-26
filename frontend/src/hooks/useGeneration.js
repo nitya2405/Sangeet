@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import axios from 'axios'
+import { API_BASE, wsUrl } from '../api'
 
 const POLL_INTERVAL = 2000
 const WS_TIMEOUT    = 3000
@@ -40,16 +41,15 @@ export function useGeneration() {
   const _startPolling = useCallback((id) => {
     pollRef.current = setInterval(async () => {
       try {
-        const { data } = await axios.get(`/api/job/${id}`)
+        const { data } = await axios.get(`${API_BASE}/api/job/${id}`)
         _applyUpdate(data)
-        if (data.status === 'done') setAudioUrl(`/api/audio/${id}`)
+        if (data.status === 'done') setAudioUrl(`${API_BASE}/api/audio/${id}`)
       } catch {}
     }, POLL_INTERVAL)
   }, [_applyUpdate])
 
   const _startWS = useCallback((id) => {
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
-    const ws = new WebSocket(`${protocol}://localhost:8000/api/ws/${id}`)
+    const ws = new WebSocket(wsUrl(`/api/ws/${id}`))
     wsRef.current = ws
 
     const timer = setTimeout(() => {
@@ -79,7 +79,7 @@ export function useGeneration() {
     setIsGenerating(true)
 
     try {
-      const { data } = await axios.post('/api/generate', params)
+      const { data } = await axios.post(`${API_BASE}/api/generate`, params)
       const id = data.job_id
       jobIdRef.current = id
       setJobId(id)
@@ -97,7 +97,7 @@ export function useGeneration() {
     setIsGenerating(false)
     setStatus('cancelled')
     if (id) {
-      try { await axios.post(`/api/cancel/${id}`) } catch {}
+      try { await axios.post(`${API_BASE}/api/cancel/${id}`) } catch {}
     }
   }, [_stopAll])
 

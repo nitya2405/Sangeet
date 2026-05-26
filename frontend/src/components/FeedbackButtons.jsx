@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import axios from 'axios'
+import { API_BASE } from '../api'
 
 export function FeedbackButtons({ jobId }) {
   const [voted, setVoted] = useState(null)
@@ -7,7 +8,7 @@ export function FeedbackButtons({ jobId }) {
   const submit = async (value) => {
     if (voted !== null || !jobId) return
     try {
-      await axios.get(`/api/feedback/${jobId}?value=${value}`)
+      await axios.get(`${API_BASE}/api/feedback/${jobId}?value=${value}`)
       setVoted(value)
     } catch {}
   }

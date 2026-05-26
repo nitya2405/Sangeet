@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { API_BASE } from './api'
 import { useVocab } from './hooks/useVocab'
 import { useGeneration } from './hooks/useGeneration'
 import { RagaSelector } from './components/RagaSelector'
@@ -46,7 +47,7 @@ export default function App() {
     const params  = new URLSearchParams(window.location.search)
     const shareId = params.get('share')
     if (!shareId) return
-    axios.get(`/api/share/${shareId}`).then(({ data }) => {
+    axios.get(`${API_BASE}/api/share/${shareId}`).then(({ data }) => {
       if (data.raga)         setRaga(data.raga)
       if (data.tala)         setTala(data.tala)
       if (data.duration_sec) setDuration(data.duration_sec)
