@@ -84,13 +84,30 @@ def load_token_spec(
     if not p.is_absolute():
         p = (repo_root / p).resolve()
 
-    with np.load(p, allow_pickle=False) as z:
+    # Delay-pattern npz files only store "tokens"; metadata lives in the manifest
+    # row or is fixed by the Encodec 24kHz 6kbps config we always use.
+    _ENCODEC_DEFAULTS = {
+        "n_codebooks":  8,
+        "codebook_size": 1024,
+        "frame_rate":   75.0,
+        "sample_rate":  24000,
+        "bandwidth":    6.0,
+    }
 
-        n_codebooks = int(z["n_codebooks"][0])
-        codebook_size = int(z["codebook_size"][0])
-        frame_rate = float(z["frame_rate"][0])
-        encodec_sr = int(z["sample_rate"][0])
-        bandwidth = float(z["bandwidth"][0])
+    with np.load(p, allow_pickle=False) as z:
+        def _get(key):
+            if key in z:
+                return z[key].flat[0]
+            # fall back to manifest row, then hard-coded Encodec defaults
+            if key in first:
+                return first[key]
+            return _ENCODEC_DEFAULTS[key]
+
+        n_codebooks   = int(_get("n_codebooks"))
+        codebook_size = int(_get("codebook_size"))
+        frame_rate    = float(_get("frame_rate"))
+        encodec_sr    = int(_get("sample_rate"))
+        bandwidth     = float(_get("bandwidth"))
 
     spec = TokenSpec(
         n_codebooks=n_codebooks,

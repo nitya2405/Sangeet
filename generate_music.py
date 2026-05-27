@@ -199,6 +199,7 @@ def generate_clip(
         cfg_scale=CFG_SCALE,
         cb_temperature_scales=cb_scales,
         device=device,
+        use_delay_pattern=getattr(generate_clip, "_delay_pattern", False),
     )
 
     raw_tokens = token_ids.detach().cpu().numpy().astype(np.int64)

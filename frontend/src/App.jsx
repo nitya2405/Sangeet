@@ -26,7 +26,7 @@ export default function App() {
   const [duration, setDuration] = useState(12)
   const [showAdv, setShowAdv]   = useState(false)
   const [cfgScale, setCfgScale] = useState(5.0)
-  const [nCb, setNCb]           = useState(4)
+  const [nCb, setNCb]           = useState(8)
   const [history, setHistory]   = useState(loadHistory)
 
   const {

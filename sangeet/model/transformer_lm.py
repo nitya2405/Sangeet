@@ -434,6 +434,7 @@ class CarnaticTransformerLM(nn.Module):
         text: str = "",
         max_text_len: int = 128,
         device: str | torch.device = "cuda",
+        use_delay_pattern: bool = False,
     ) -> torch.Tensor:
         """
         Generate flattened token ids [T*K] (without BOS) for `n_frames`.
@@ -543,15 +544,20 @@ class CarnaticTransformerLM(nn.Module):
                 effective_temp = base_temp
             effective_temp = max(effective_temp, 1e-6)
 
-            next_code = sample_from_logits(
-                logits[0, 0],
-                temperature=effective_temp,
-                top_k=top_k,
-                top_p=top_p,
-                typical_mass=typical_mass,
-            )
+            step_idx = input_pos // k
+            if use_delay_pattern and step_idx < codebook_idx:
+                # Delay-pattern warmup slot — inject PAD to match training distribution.
+                next_token = int(self.token_spec.pad_id)
+            else:
+                next_code = sample_from_logits(
+                    logits[0, 0],
+                    temperature=effective_temp,
+                    top_k=top_k,
+                    top_p=top_p,
+                    typical_mass=typical_mass,
+                )
+                next_token = int(off + codebook_idx * cb + int(next_code))
 
-            next_token = int(off + codebook_idx * cb + int(next_code))
             out_tokens.append(next_token)
 
             current = torch.tensor([[next_token]], device=dev, dtype=torch.long)

@@ -93,7 +93,7 @@ def main() -> None:
         np.savez_compressed(dst_path, tokens=delay_tokens)
 
         new_row = dict(row)
-        new_row["tokens_path"] = str(dst_path.relative_to(_REPO))
+        new_row["tokens_path"] = str(dst_path.resolve().relative_to(_REPO))
         new_row["delay_pattern"] = True
         out_rows.append(new_row)
 
