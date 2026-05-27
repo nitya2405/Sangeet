@@ -435,6 +435,8 @@ class CarnaticTransformerLM(nn.Module):
         max_text_len: int = 128,
         device: str | torch.device = "cuda",
         use_delay_pattern: bool = False,
+        progress_callback=None,
+        progress_every: int = 50,
     ) -> torch.Tensor:
         """
         Generate flattened token ids [T*K] (without BOS) for `n_frames`.
@@ -559,6 +561,13 @@ class CarnaticTransformerLM(nn.Module):
                 next_token = int(off + codebook_idx * cb + int(next_code))
 
             out_tokens.append(next_token)
+
+            # Fire progress callback at frame boundaries every progress_every frames
+            frames_done = len(out_tokens) // k
+            if (progress_callback is not None
+                    and len(out_tokens) % k == 0
+                    and frames_done % progress_every == 0):
+                progress_callback(frames_done, n_frames)
 
             current = torch.tensor([[next_token]], device=dev, dtype=torch.long)
             input_pos += 1

@@ -199,10 +199,15 @@ def _run_generation(job_id: str) -> None:
                 return
 
             _update_job(job_id, clip_num=i + 1)
-            n_frames  = max(1, int(CLIP_SEC * frame_rate))
+            clip_duration = min(CLIP_SEC, duration_sec - i * CLIP_SEC)
+            n_frames  = max(1, int(clip_duration * frame_rate))
             cb_scales = CB_TEMPERATURE_SCALES[:n_cb_full]
 
-            print(f"[gen:{job_id[:8]}] clip {i+1}/{n_clips} — sampling {n_frames} frames...", flush=True)
+            print(f"[gen:{job_id[:8]}] clip {i+1}/{n_clips} — {clip_duration:.1f}s = {n_frames} frames, sampling...", flush=True)
+
+            def _progress(frames_done, frames_total, _clip=i+1, _total_clips=n_clips):
+                print(f"[gen:{job_id[:8]}] clip {_clip}/{_total_clips} — {frames_done}/{frames_total} frames", flush=True)
+
             with torch.inference_mode():
                 token_ids = model.generate(
                     raga_id=raga_id,
@@ -214,6 +219,8 @@ def _run_generation(job_id: str) -> None:
                     cfg_scale=cfg_scale,
                     cb_temperature_scales=cb_scales,
                     device=device,
+                    progress_callback=_progress,
+                    progress_every=50,
                 )
             print(f"[gen:{job_id[:8]}] clip {i+1}/{n_clips} — tokens done, decoding audio...", flush=True)
 
