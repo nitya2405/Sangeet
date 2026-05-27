@@ -19,7 +19,7 @@ function getRagaOfDay(ragas) {
 }
 
 export default function App() {
-  const { ragas, talas, loading } = useVocab()
+  const { ragas, talas, loading, error: vocabError } = useVocab()
 
   const [raga, setRaga]         = useState('Kalyāṇ')
   const [tala, setTala]         = useState('Tīntāl')
@@ -81,6 +81,15 @@ export default function App() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-zinc-400">
         Loading…
+      </div>
+    )
+  }
+
+  if (vocabError) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-zinc-950 px-6 text-center">
+        <p className="text-red-400 font-medium">Backend unreachable</p>
+        <p className="text-zinc-500 text-sm max-w-sm">{vocabError}</p>
       </div>
     )
   }
