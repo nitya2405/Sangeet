@@ -295,6 +295,11 @@ app.router.lifespan_context = _lifespan
 # Vocab endpoints
 # ---------------------------------------------------------------------------
 
+@app.get("/")
+def root():
+    return {"status": "Sangeet backend running"}
+
+
 @app.get("/api/ragas")
 def list_ragas():
     return get_raga_list()
