@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { API_BASE } from '../api'
 
 export function ProgressBar({ status, progress, queuePos, nClips, clipNum, jobId, onCancel }) {
   if (!status || status === 'done' || status === 'failed' || status === 'cancelled') return null
@@ -7,7 +8,7 @@ export function ProgressBar({ status, progress, queuePos, nClips, clipNum, jobId
 
   const handleCancel = async () => {
     if (!jobId) return
-    try { await axios.post(`/api/cancel/${jobId}`) } catch {}
+    try { await axios.post(`${API_BASE}/api/cancel/${jobId}`) } catch {}
     onCancel?.()
   }
 
