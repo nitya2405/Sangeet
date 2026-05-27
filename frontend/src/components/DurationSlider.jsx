@@ -11,7 +11,7 @@ export function DurationSlider({ value, onChange }) {
       </div>
       <input
         type="range"
-        min={6}
+        min={4}
         max={60}
         step={1}
         value={value}
@@ -19,7 +19,7 @@ export function DurationSlider({ value, onChange }) {
         className="w-full accent-violet-500 cursor-pointer"
       />
       <div className="flex justify-between text-xs text-zinc-600">
-        <span>6s</span>
+        <span>4s</span>
         <span>60s</span>
       </div>
       {!isStitched ? (

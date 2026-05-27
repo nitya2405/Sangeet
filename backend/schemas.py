@@ -34,7 +34,7 @@ class GenerateRequest(BaseModel):
         DEFAULT_DURATION_SEC,
         ge=MIN_DURATION_SEC,
         le=MAX_DURATION_SEC,
-        description="Output duration in seconds (6–60)",
+        description="Output duration in seconds (4–60)",
     )
     cfg_scale: float = Field(
         DEFAULT_CFG_SCALE,

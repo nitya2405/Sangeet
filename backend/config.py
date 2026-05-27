@@ -54,7 +54,7 @@ DEFAULT_N_CODEBOOKS  = 4
 CLIP_SEC             = 12.0          # context-safe clip length
 CROSSFADE_SEC        = 1.0
 
-MIN_DURATION_SEC     = 6
+MIN_DURATION_SEC     = 4
 MAX_DURATION_SEC     = 60
 MIN_CFG_SCALE        = 3.0
 MAX_CFG_SCALE        = 7.0

@@ -152,9 +152,11 @@ def _run_generation(job_id: str) -> None:
     n_codebooks = job["n_codebooks"]
 
     _update_job(job_id, status="running", progress=0.0, queue_position=None)
+    print(f"[gen:{job_id[:8]}] starting — raga={raga} tala={tala} dur={duration_sec}s cb={n_codebooks}", flush=True)
 
     try:
         import torch
+        print(f"[gen:{job_id[:8]}] loading model...", flush=True)
         cache        = get_model()
         model        = cache["model"]
         token_meta   = cache["token_meta"]
@@ -163,6 +165,7 @@ def _run_generation(job_id: str) -> None:
         artist_vocab = cache["artist_vocab"]
         enc_model    = cache["enc_model"]
         device       = cache["device"]
+        print(f"[gen:{job_id[:8]}] model ready on {device}", flush=True)
 
         def _safe_encode(vocab, key):
             if key in vocab.stoi:
@@ -188,16 +191,18 @@ def _run_generation(job_id: str) -> None:
         sr_out = None
 
         _update_job(job_id, n_clips=n_clips, clip_num=0)
+        print(f"[gen:{job_id[:8]}] {n_clips} clip(s) × {CLIP_SEC}s to generate", flush=True)
 
         for i in range(n_clips):
-            # Check for cancellation between clips
             if _get_job(job_id).get("status") == "cancelled":
+                print(f"[gen:{job_id[:8]}] cancelled by user", flush=True)
                 return
 
             _update_job(job_id, clip_num=i + 1)
             n_frames  = max(1, int(CLIP_SEC * frame_rate))
             cb_scales = CB_TEMPERATURE_SCALES[:n_cb_full]
 
+            print(f"[gen:{job_id[:8]}] clip {i+1}/{n_clips} — sampling {n_frames} frames...", flush=True)
             with torch.inference_mode():
                 token_ids = model.generate(
                     raga_id=raga_id,
@@ -210,6 +215,7 @@ def _run_generation(job_id: str) -> None:
                     cb_temperature_scales=cb_scales,
                     device=device,
                 )
+            print(f"[gen:{job_id[:8]}] clip {i+1}/{n_clips} — tokens done, decoding audio...", flush=True)
 
             codes = token_ids_to_codes(
                 token_ids.detach().cpu().numpy().astype(np.int64),
@@ -229,8 +235,9 @@ def _run_generation(job_id: str) -> None:
             clips.append(audio)
             sr_out = sr
             _update_job(job_id, progress=(i + 1) / n_clips)
+            print(f"[gen:{job_id[:8]}] clip {i+1}/{n_clips} done ({len(audio)/sr:.1f}s audio)", flush=True)
 
-        # Stitch
+        print(f"[gen:{job_id[:8]}] stitching + post-processing...", flush=True)
         combined = clips[0]
         for clip in clips[1:]:
             combined = _crossfade(combined, clip, sr_out, CROSSFADE_SEC)
@@ -254,8 +261,10 @@ def _run_generation(job_id: str) -> None:
             raise RuntimeError(f"ffmpeg: {result.stderr.decode()}")
 
         _update_job(job_id, status="done", progress=1.0, output_path=str(mp3_path))
+        print(f"[gen:{job_id[:8]}] complete — {mp3_path}", flush=True)
 
     except Exception as exc:
+        print(f"[gen:{job_id[:8]}] FAILED: {exc}", flush=True)
         _update_job(job_id, status="failed", error=str(exc))
 
 
