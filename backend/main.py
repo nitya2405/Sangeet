@@ -191,7 +191,7 @@ def _run_generation(job_id: str) -> None:
         sr_out = None
 
         _update_job(job_id, n_clips=n_clips, clip_num=0)
-        print(f"[gen:{job_id[:8]}] {n_clips} clip(s) × {CLIP_SEC}s to generate", flush=True)
+        print(f"[gen:{job_id[:8]}] {n_clips} clip(s), total {duration_sec}s requested", flush=True)
 
         for i in range(n_clips):
             if _get_job(job_id).get("status") == "cancelled":
