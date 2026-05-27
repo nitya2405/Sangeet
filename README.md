@@ -1,3 +1,13 @@
+---
+title: Sangeet
+emoji: 🎵
+colorFrom: purple
+colorTo: pink
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Sangeet — Carnatic Music Generation Pipeline (Encodec + Transformer)
 
 End-to-end, config-driven pipeline for training a MusicGen-style autoregressive model on **Carnatic** recordings using **Dunya** + **Saraga-style** metadata.
