@@ -36,3 +36,6 @@ __MACOSX/
 
 # Claude internal
 .claude/
+
+
+hf.txt
