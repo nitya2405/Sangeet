@@ -25,7 +25,7 @@ from typing import Optional
 
 import numpy as np
 import soundfile as sf
-from fastapi import FastAPI, HTTPException, Request, Response, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Response, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
@@ -34,8 +34,6 @@ from backend.config import (
     CROSSFADE_SEC,
     MP3_BITRATE,
     OUTPUTS_DIR,
-    RATE_LIMIT_MAX,
-    RATE_LIMIT_WINDOW,
     REPO_ROOT,
 )
 from backend.raga_meta import get_raga_list, get_tala_list, raga_names, tala_names
@@ -53,34 +51,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# ---------------------------------------------------------------------------
-# In-memory rate limiter (sliding window, no Redis required)
-# ---------------------------------------------------------------------------
-
-_rate_store: dict[str, list[float]] = {}
-_rate_lock = threading.Lock()
-
-
-def _check_rate_limit(ip: str) -> tuple[bool, int]:
-    """Returns (allowed, remaining). Sliding window over RATE_LIMIT_WINDOW seconds."""
-    now = time.time()
-    cutoff = now - RATE_LIMIT_WINDOW
-    with _rate_lock:
-        timestamps = [t for t in _rate_store.get(ip, []) if t > cutoff]
-        timestamps.append(now)
-        _rate_store[ip] = timestamps
-    count = len(timestamps)
-    remaining = max(0, RATE_LIMIT_MAX - count)
-    return count <= RATE_LIMIT_MAX, remaining
-
-
-def _get_client_ip(request: Request) -> str:
-    forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return getattr(request.client, "host", "0.0.0.0")
-
 
 # ---------------------------------------------------------------------------
 # In-memory job store
@@ -331,20 +301,11 @@ def list_talas():
 # ---------------------------------------------------------------------------
 
 @app.post("/api/generate", response_model=GenerateResponse, status_code=202)
-def generate(req: GenerateRequest, request: Request) -> GenerateResponse:
+def generate(req: GenerateRequest) -> GenerateResponse:
     if req.raga not in raga_names():
         raise HTTPException(status_code=422, detail=f"Unknown raga: '{req.raga}'. See /api/ragas.")
     if req.tala not in tala_names():
         raise HTTPException(status_code=422, detail=f"Unknown tala: '{req.tala}'. See /api/talas.")
-
-    ip = _get_client_ip(request)
-    allowed, _ = _check_rate_limit(ip)
-    if not allowed:
-        raise HTTPException(
-            status_code=429,
-            detail=f"Rate limit exceeded — max {RATE_LIMIT_MAX} generations per hour.",
-            headers={"Retry-After": str(RATE_LIMIT_WINDOW)},
-        )
 
     job_id = str(uuid.uuid4())
     with _lock:
