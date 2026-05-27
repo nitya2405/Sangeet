@@ -2,8 +2,8 @@ import { useState, useRef, useCallback } from 'react'
 import axios from 'axios'
 import { API_BASE, wsUrl } from '../api'
 
-const POLL_INTERVAL = 2000
-const WS_TIMEOUT    = 3000
+const POLL_INTERVAL = 3000
+const WS_TIMEOUT    = 5000
 
 export function useGeneration() {
   const [jobId, setJobId]           = useState(null)
@@ -62,7 +62,7 @@ export function useGeneration() {
     ws.onmessage = (evt) => {
       const data = JSON.parse(evt.data)
       _applyUpdate(data)
-      if (data.status === 'done') setAudioUrl(`/api/audio/${id}`)
+      if (data.status === 'done') setAudioUrl(`${API_BASE}/api/audio/${id}`)
     }
   }, [_applyUpdate, _startPolling])
 
